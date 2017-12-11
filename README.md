@@ -1,2 +1,3 @@
-# eth-smart-contract_AirdropableContact_withAdminPart
-ethereum, smart contract, airdrop, admin solidity, solidity
+# MetaCoin Truffle Box
+
+MetaCoin example Truffle project
