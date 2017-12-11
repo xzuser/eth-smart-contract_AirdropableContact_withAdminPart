@@ -1,3 +1,3 @@
-# MetaCoin Truffle Box
+# Airdrop Contract / Admins / OOP solidity
 
-MetaCoin example Truffle project
+This is strongly private code, do not see
