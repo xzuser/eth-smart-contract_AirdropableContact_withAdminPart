@@ -68,7 +68,8 @@ contract ERC20 is ERC20Interface
         return totalSupply;
     }
 }
-/* // For the test
+
+// For the test
 
 //name this contract whatever you'd like
 contract ContractERC20 is ERC20
@@ -86,6 +87,7 @@ contract ContractERC20 is ERC20
         name = "NAME OF YOUR TOKEN HERE";            // Set the name for display purposes
         decimals = 0;                                // Amount of decimals for display purposes
         symbol = "SYM";                              // Set the symbol for display purposes
+        thisContract = this;
     }
 
     function _transfer(address _from, address _to, uint256 _value) public returns (bool) {
@@ -99,7 +101,7 @@ contract ContractERC20 is ERC20
 
     function() public payable {}
 }
-*/
+
 
 /* Ownable contract */
 contract Owner {
@@ -205,6 +207,13 @@ contract ContractERC201 is ERC20, Admin, DateKernel
 {
     address public thisContract; // This
 
+    uint256 price; // tokens price
+    uint256 DEC;
+
+    // make global mappings invisible, becouse do not using
+    mapping (address => uint256) internal balances;
+    mapping (address => mapping (address => uint256)) internal allowed;
+
     /******* Pauseble contract block *******/
 
     bool public pause = true; // sale state identifier
@@ -229,10 +238,31 @@ contract ContractERC201 is ERC20, Admin, DateKernel
     ERC20 public Ancestor; // Init parent contract instance
 
     /* Consturctor init */
-    function ContractERC201(address _contract) public {
+    function ContractERC201(address _contract) public
+    {
         require(address(0) != _contract);
         thisContract = this;
         Ancestor = ERC20(_contract); // Set work contract
+        partners[owner].exists = true;
+    }
+
+    /* set decimal of ancestor token for the correct counting */
+    function changeDecimal(uint256 _decimal) public onlyOwner
+        returns (bool)
+    {
+        DEC = _decimal;
+        returns true;
+    }
+
+    // Function for change/set current token price
+    function changePrice(uint256 _tokenPrice, uint256 _numerator) public onlyOwner
+        returns (bool)
+    {
+        assert(_tokenPrice > 0);
+        if (_numerator == 0) _numerator = 1;
+        require(_numerator * DEC < _tokenPrice);
+        price = (_numerator * DEC) / _tokenPrice;
+        return true;
     }
 
     /*Send tokens(which still on balance) from this contrct to partners use only internal*/ //work OK
@@ -284,7 +314,7 @@ contract ContractERC201 is ERC20, Admin, DateKernel
 
     /************** Partners block ****************/
 
-    struct partner {
+    struct partner{
         bool exists;
         uint256 tokens;
         uint256 tokensForOneYear;
@@ -336,13 +366,25 @@ contract ContractERC201 is ERC20, Admin, DateKernel
     // Payment manager
     function() public payable isBlocked
     {
-        require(msg.value >= 1 ether / 10);                   // requere transaction value more then 0.1 eth
-        uint256 _amount;
-        if (partners[msg.sender].exists) {                    // if is partner
-            _amount = msg.value / 2;
-            Ancestor.transfer(msg.sender, _amount);           // send 50% to the partners wallet
-            partners[msg.sender].tokens += _amount;           // send 50% to reserve fond
-            partners[msg.sender].tokensForOneYear += _amount;
-        }
+        require(msg.value >= 1 ether / 10);              // requere transaction value more then 0.1 eth
+
+        uint256 _msgval = msg.value * DEC;
+
+        require(_msgval < price);
+
+        uint256 amount = _msgval / price;
+
+        assert(partners[msg.sender].exists);             // only if is partner
+
+        uint256 _balance = Ancestor.balanceOf(this);
+
+        require(_balance >= amount && amount > 0);
+
+        uint256 _amount = amount / 2;
+
+        Ancestor.transfer(msg.sender, _amount);           // send 50% to the partners wallet
+
+        partners[msg.sender].tokens += _amount;           // send 50% to reserve fond
+        partners[msg.sender].tokensForOneYear += _amount;
     }
 }
