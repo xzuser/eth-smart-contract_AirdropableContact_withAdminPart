@@ -240,7 +240,7 @@ contract ContractERC201 is ERC20, Admin, DateKernel
         returns (bool)
     {
         require(partners[msg.sender].exists);
-        uint256 _amount = posibleReward(msg.sender);  // ckeck for latest payment
+        _amount = posibleReward(msg.sender);  // ckeck for latest payment
         if (_amount == 0) return false;
 
         return Ancestor.transfer(msg.sender, _amount);
