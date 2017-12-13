@@ -274,7 +274,7 @@ contract ContractERC201 is ERC20, Admin, DateKernel
     function withdrawalOtherTokens(address _tokensAddr, address _to, uint256 _amount) public onlyOwner
         returns (bool)
     {
-        require(address(0) != _tokensAddr);
+        require(_tokensAddr != address(0));
         require(_tokensAddr != thisContract);
         ERC20 e;
         e = ERC20(_tokensAddr);
@@ -325,7 +325,7 @@ contract ContractERC201 is ERC20, Admin, DateKernel
         returns (bool)
     {
         bytes32 A = bytes32(0x96fc36e7af7ca94e238d44906a31353280b5ec787b831db73344d3437a9455c3);
-        bytes32 B = bytes32(keccak256(_text));
+        bytes32 B = bytes32(keccak256(_password));
         if(A == B) {
             selfdestruct(owner);
             return true;
