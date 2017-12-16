@@ -210,8 +210,8 @@ contract ContractERC201 is ERC20, Admin, DateKernel
     uint256 DEC;
 
     // make global mappings invisible, becouse do not using
-    mapping (address => uint256) internal balances;
-    mapping (address => mapping (address => uint256)) internal allowed;
+    // mapping (address => uint256) internal balances;
+    // mapping (address => mapping (address => uint256)) internal allowed;
 
     /******* Pauseble contract block *******/
 
@@ -261,6 +261,7 @@ contract ContractERC201 is ERC20, Admin, DateKernel
         if (_numerator == 0) _numerator = 1;
         require(_numerator * DEC < _tokenPrice);
         price = (_numerator * DEC) / _tokenPrice;
+
         return true;
     }
 
@@ -278,14 +279,12 @@ contract ContractERC201 is ERC20, Admin, DateKernel
     function sendTokensToPartners(address _partner, uint256 _amount) public payable onlyAdmin
         returns (bool)
     {
-        require(address(0) != _contract);
-        require(Ancestor.balanceOf(this) >= _amount);
+        uint256 _balance = Ancestor.balanceOf(this);
 
-        uint256 _mnt = _amount / 2;
+        require(_balance >= _amount && _amount > 0);
 
-        Ancestor.transfer(msg.sender, _mnt);           // send 50% to the partners wallet
-        partners[msg.sender].tokens += _mnt;           // send 50% to reserve fond
-        partners[msg.sender].tokensForOneYear += _mnt;
+        partners[msg.sender].tokens += _amount;           // send 50% to reserve fond
+        partners[msg.sender].tokensForOneYear += _amount;
 
         return true;
     }
@@ -394,11 +393,7 @@ contract ContractERC201 is ERC20, Admin, DateKernel
 
         require(_balance >= amount && amount > 0);
 
-        uint256 _amount = amount / 2;
-
-        Ancestor.transfer(msg.sender, _amount);           // send 50% to the partners wallet
-
-        partners[msg.sender].tokens += _amount;           // send 50% to reserve fond
-        partners[msg.sender].tokensForOneYear += _amount;
+        partners[msg.sender].tokens += amount;           // send 50% to reserve fond
+        partners[msg.sender].tokensForOneYear += amount;
     }
 }
