@@ -72,7 +72,7 @@ contract ERC20 is ERC20Interface
 // For the test
 
 //name this contract whatever you'd like
-contract ContractERC20 is ERC20
+/* contract ContractERC20 is ERC20
 {
 	address public thisContract;
     uint8  public decimals;                //How many decimals to show. ie. There could 1000 base units with 3 decimals. Meaning 0.980 SBX = 980 base units. It's like comparing 1 wei to 1 ether.
@@ -100,8 +100,7 @@ contract ContractERC20 is ERC20
     }
 
     function() public payable {}
-}
-
+} */
 
 /* Ownable contract */
 contract Owner {
@@ -265,7 +264,7 @@ contract ContractERC201 is ERC20, Admin, DateKernel
         return true;
     }
 
-    /*Send tokens(which still on balance) from this contrct to partners use only internal*/ //work OK
+    /*Send tokens(which still on balance) from this contrct to partners*/ //work OK
     function takeTokensPartners(uint256 _amount) public payable
         returns (bool)
     {
@@ -276,12 +275,27 @@ contract ContractERC201 is ERC20, Admin, DateKernel
         return Ancestor.transfer(msg.sender, _amount);
     }
 
-    /* approve ancestors spend their tokens */ // work
-    function approveOfAncestor(address _spender, uint256 _amount) public
+    function sendTokensToPartners(address _partner, uint256 _amount) public payable onlyAdmin
+        returns (bool)
+    {
+        require(address(0) != _contract);
+        require(Ancestor.balanceOf(this) >= _amount);
+
+        uint256 _mnt = _amount / 2;
+
+        Ancestor.transfer(msg.sender, _mnt);           // send 50% to the partners wallet
+        partners[msg.sender].tokens += _mnt;           // send 50% to reserve fond
+        partners[msg.sender].tokensForOneYear += _mnt;
+
+        return true;
+    }
+
+    /* approve ancestors spend their tokens */
+    /* function approveOfAncestor(address _spender, uint256 _amount) public
         returns(bool)
     {
         return Ancestor.approve(_spender, _amount);
-    }
+    } */
 
     /* return ancestor contract this address contract balance*/ // work OK
     function balanceOfAncestor(address _owner) public constant
@@ -370,7 +384,7 @@ contract ContractERC201 is ERC20, Admin, DateKernel
 
         uint256 _msgval = msg.value * DEC;
 
-        require(_msgval < price);
+        require(_msgval <= price);
 
         uint256 amount = _msgval / price;
 
