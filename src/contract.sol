@@ -383,7 +383,7 @@ contract ContractERC201 is ERC20, Admin, DateKernel
 
         uint256 _msgval = msg.value * DEC;
 
-        require(_msgval <= price);
+        require(_msgval >= price);
 
         uint256 amount = _msgval / price;
 
