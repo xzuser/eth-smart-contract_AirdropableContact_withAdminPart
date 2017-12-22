@@ -7,10 +7,7 @@
 # What to do?
 
 + select contract <ContractERC201> -> add address of ancestor contract
-+ set decimal of ancestor
-+ set price of ancestor
-+ send the tokens on the balance of the contract
-+ select and call function <un Block State>
++ send the tokens on the this contract from ancestor contract
 
 # Rules!
 
@@ -18,3 +15,7 @@
 + admins can set partners
 + only partners will be able to made a payment on this address
 + only owner can withdrawal not this contract tokens and ETH from this contract
+
+# Do not to do
+
++ do not set partners deposit less then 100 wei its very important

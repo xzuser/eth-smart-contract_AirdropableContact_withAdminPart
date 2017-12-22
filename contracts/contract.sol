@@ -53,53 +53,9 @@ contract ERC20 is ERC20Interface
       return allowed[_owner][_spender];
     }
 
-    function approveAndCall(address _spender, uint256 _value, bytes _extraData) public returns (bool) {
-        allowed[msg.sender][_spender] = _value;
-        Approval(msg.sender, _spender, _value);
-
-        //call the receiveApproval function on the contract you want to be notified. This crafts the function signature manually so one doesn't have to include a contract in here just for this.
-        //receiveApproval(address _from, uint256 _value, address _tokenContract, bytes _extraData)
-        //it is assumed that when does this that the call *should* succeed, otherwise one would use vanilla approve instead.
-        if(!_spender.call(bytes4(bytes32(keccak256("receiveApproval(address,uint256,address,bytes)"))), msg.sender, _value, this, _extraData)) { revert(); }
-        return true;
-    }
-
     function totalSupply() public constant returns (uint256) {
         return totalSupply;
     }
-}
-
-// For the test
-
-//name this contract whatever you'd like
-contract ContractERC20 is ERC20
-{
-	address public thisContract;
-    uint8  public decimals;                //How many decimals to show. ie. There could 1000 base units with 3 decimals. Meaning 0.980 SBX = 980 base units. It's like comparing 1 wei to 1 ether.
-    string public name;                   //fancy name: eg Simon Bucks
-    string public symbol;                 //An identifier: eg SBX
-    string public version = 'H1.0';       //human 0.1 standard. Just an arbitrary versioning scheme.
-
-   //make sure this function name matches the contract name above. So if you're token is called TutorialToken, make sure the //contract name above is also TutorialToken instead of ERC20Token
-    function ContractERC20() public payable {
-        balances[msg.sender] = 100000;               // Give the creator all initial tokens (100000 for example)
-        totalSupply = 100000;                        // Update total supply (100000 for example)
-        name = "NAME OF YOUR TOKEN HERE";            // Set the name for display purposes
-        decimals = 0;                                // Amount of decimals for display purposes
-        symbol = "SYM";                              // Set the symbol for display purposes
-        thisContract = this;
-    }
-
-    function _transfer(address _from, address _to, uint256 _value) public returns (bool) {
-        if (balances[_from] >= _value && _value > 0) {
-            balances[_from] -= _value;
-            balances[_to] += _value;
-            Transfer(_from, _to, _value);
-            return true;
-        } else { return false; }
-    }
-
-    function() public payable {}
 }
 
 /* Ownable contract */
@@ -150,8 +106,10 @@ contract Admin is Owner
 /* Date manipulation contract */
 contract DateKernel
 {
-    uint256 public oneYear = 1513975250; // set unix timestamp !!!
-    uint256 m5 = 5 minutes;
+    uint256 public oneYear = 1540339200; // set unix timestamp 24.10.2018 0:0:00
+    uint256 m28 = 28 * 1 days;
+    uint256 m30 = 30 * 1 days;
+    uint256 m31 = 31 * 1 days;
 
     // Check date return persentage of partner balance which he able to spend
     function checkDate() internal view
@@ -159,23 +117,46 @@ contract DateKernel
     {
         uint256 canSpend = 0;
 
-        uint256 m1 = m5;
-        uint256 m2 = m1 + m5;
+        uint256 m1 = m31;
+        uint256 m2 = m1 + m30;
+        uint256 m3 = m2 + m31;
+        uint256 m4 = m3 + m31;
+        uint256 m5 = m4 + m28;
+        uint256 m6 = m5 + m31;
+        uint256 m7 = m6 + m30;
+        uint256 m8 = m7 + m31;
+        uint256 m9 = m8 + m30;
+        uint256 m10 = m9 + m31;
 
         if (now <= oneYear) {                                      // before reward
             canSpend = 0;   // 0% of fund
         } else if (now > oneYear && oneYear + m1 >= now) {         // since one year +
             canSpend = 50;  // 50% of fund
-        } else if (now > oneYear + m1 && oneYear + m2 >= now) {         // since one year +
-            canSpend = 75;  // 50% of fund
-        } else if (now > oneYear + m2) {                         // since 10 month
+        } else if (now > oneYear + m1 && oneYear + m2 >= now) {    // since 1 month
+            canSpend = 55;
+        } else if (now > oneYear + m2 && oneYear + m3 >= now) {    // since 2 month
+            canSpend = 60;
+        } else if (now > oneYear + m3 && oneYear + m4 >= now) {    // since 3 month
+            canSpend = 65;
+        } else if (now > oneYear + m4 && oneYear + m5 >= now) {    // since 4 month
+            canSpend = 70;
+        } else if (now > oneYear + m5 && oneYear + m6 >= now) {    // since 5 month
+            canSpend = 75;
+        } else if (now > oneYear + m6 && oneYear + m7 >= now) {    // since 6 month
+            canSpend = 80;
+        } else if (now > oneYear + m7 && oneYear + m8 >= now) {    // since 7 month
+            canSpend = 85;
+        } else if (now > oneYear + m8 && oneYear + m9 >= now) {    // since 8 month
+            canSpend = 90;
+        } else if (now > oneYear + m9 && oneYear + m10 >= now) {   // since 9 month
+            canSpend = 95;
+        } else if (now > oneYear + m10) {                         // since 10 month
             canSpend = 100;
         }
 
         return canSpend;
     }
 }
-
 
 contract ContractERC201 is ERC20, Admin, DateKernel
 {
@@ -250,7 +231,7 @@ contract ContractERC201 is ERC20, Admin, DateKernel
     mapping (address => partner) public partners;
 
     // Admin set new partner
-    function newPartner(address _partner) onlyAdmin payable public
+    function newPartner(address _partner) payable public onlyAdmin
         returns (bool)
     {
         partners[_partner].exists = true;
